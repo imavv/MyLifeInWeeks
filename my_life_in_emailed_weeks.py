@@ -1,79 +1,68 @@
 import yagmail
-import matplotlib.pyplot as plt
 from datetime import datetime
-import os
 
-# CONFIGURATION
-EMAIL_SENDER = "amavirananda.2001@gmail.com"
-EMAIL_PASSWORD = "hxwhpaodkolqgxbb"
-EMAIL_RECEIVER = "amavirananda.2001@gmail.com"
-BIRTHDATE = "2001-07-13"  # YYYY-MM-DD
+# === CONFIG ===
+EMAIL_SENDER = "your_email@gmail.com"
+EMAIL_PASSWORD = "your_app_password"  # Use Gmail App Password
+EMAIL_RECEIVER = "your_email@gmail.com"
+BIRTHDATE = "1995-01-01"  # YYYY-MM-DD
 LIFE_EXPECTANCY = 80
-OUTPUT_IMAGE = "lifeinweeks.png"
+TEMPLATE_PATH = "template.html"
+OUTPUT_HTML = "life_in_weeks_output.html"
 
-def generate_life_weeks_image(birthdate_str, life_expectancy, output_path):
-    birthdate = datetime.strptime(birthdate_str, "%Y-%m-%d")
+def generate_life_in_weeks_html(birthdate: str, life_expectancy=80):
+    weeks_per_year = 52
+    total_weeks = life_expectancy * weeks_per_year
+
+    birth = datetime.strptime(birthdate, "%Y-%m-%d")
     today = datetime.today()
-    lived_weeks = (today - birthdate).days // 7
-    total_weeks = life_expectancy * 52  # 52 weeks per year
+    lived_weeks = (today - birth).days // 7
 
-    fig, ax = plt.subplots(figsize=(12, 15))
-    ax.set_xlim(0, 52)
-    ax.set_ylim(0, life_expectancy)
-    ax.set_aspect('equal')
-    ax.axis('off')
+    html = '<table cellspacing="0" cellpadding="0" style="line-height: 1px; margin: 10px 0;">'
 
-    # Adjust box size
-    box_width = 1  # Width of each box
-    box_height = 1  # Height of each box
-    margin = 0.2  # Space between each box
+    for row in range(life_expectancy):
+        html += '<tr>'
+        for col in range(weeks_per_year):
+            i = row * weeks_per_year + col
+            if i < lived_weeks:
+                color = "#000000"
+            elif i == lived_weeks:
+                color = "#FF0000"
+            else:
+                color = "#CCCCCC"
 
-    # Loop through each week
-    for i in range(total_weeks):
-        row = i // 52
-        col = i % 52
+            html += (
+                f'<td style="width:8px;height:8px;'
+                f'background-color:{color};'
+                f'padding:1px;'
+                f'margin:1px;"></td>'
+            )
+        html += '</tr>'
 
-        if i < lived_weeks:
-            color = "#000000"  # Lived weeks
-        elif i == lived_weeks:
-            color = "#FF0000"  # Current week
-        else:
-            color = "#CCCCCC"  # Future weeks
+    html += '</table>'
+    return html
 
-        # Create each rectangle with an outline and padding (margin)
-        rect = plt.Rectangle(
-            (col + margin, life_expectancy - row - 1 - margin),  # Offset by margin
-            box_width - 2 * margin,  # Reduced width to account for margin
-            box_height - 2 * margin,  # Reduced height to account for margin
-            color=color,
-            edgecolor="black",  # Black outline around each box
-            lw=1  # Line width for the outline
-        )
-        ax.add_patch(rect)
+def read_template():
+    with open(TEMPLATE_PATH, "r", encoding="utf-8") as f:
+        return f.read()
 
-    # Adjust layout and save the image
-    plt.tight_layout()
-    plt.savefig(output_path, dpi=150)
-    plt.close()
-    print(f"✅ Saved image to {output_path}")
+def send_email():
+    grid_html = generate_life_in_weeks_html(BIRTHDATE, LIFE_EXPECTANCY)
+    template = read_template()
+    full_html = template.replace("{{GRID}}", grid_html)
 
-def send_email_with_image(birthdate_str, output_image):
-    birthdate = datetime.strptime(birthdate_str, "%Y-%m-%d")
-    today = datetime.today()
-    lived_weeks = (today - birthdate).days // 7
+    # Save the HTML for reference
+    with open(OUTPUT_HTML, "w", encoding="utf-8") as f:
+        f.write(full_html)
 
-    subject = "Your Life in Weeks – A Gentle Reminder"
-    body = f"Today I am living my {lived_weeks}th week. I've come pretty far."
-
-    generate_life_weeks_image(BIRTHDATE, LIFE_EXPECTANCY, output_image)
-
+    subject = "Your Life in Weeks – Weekly Update"
     yag = yagmail.SMTP(EMAIL_SENDER, EMAIL_PASSWORD)
     yag.send(
         to=EMAIL_RECEIVER,
         subject=subject,
-        contents=[body, output_image]
+        contents=full_html
     )
-    print("✅ Email sent with image.")
+    print("✅ Email sent. HTML saved as", OUTPUT_HTML)
 
 if __name__ == "__main__":
-    send_email_with_image(BIRTHDATE, OUTPUT_IMAGE)
+    send_email()
