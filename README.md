@@ -9,4 +9,5 @@ As the days go by, it will serve as a reminder of how limited my time is on eart
 
 
 My life in weeks - as I write this, I'm at my 1242th week.
+
 ![lifeinweeks](https://github.com/user-attachments/assets/5b384b68-cf35-4237-a939-657780296f86)
