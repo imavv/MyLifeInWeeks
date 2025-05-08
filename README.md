@@ -4,7 +4,7 @@ It's supposed to be a visual representation (tiny squares arranged in a grid) to
 
 I found it really interesting and thought I could use it to foster a healthy sense of urgency in my life.
 
-So I coded a script to automate an email each week sending me an updated image of my life in weeks (thanks ChatGPT!). 
+So I coded a script to automate an email sending me my own "Life in Weeks" each Monday (thanks ChatGPT!). 
 As the days go by, it will serve as a reminder of how limited my time is on earth - and hopefully propel me to act on the important things.
 
 
