@@ -2,8 +2,8 @@ name: Send Weekly Life Email
 
 on:
   schedule:
-    - cron: '0 12 * * 1'  # Every Monday at 08:00 UTC
-  workflow_dispatch:  # Optional manual trigger from GitHub UI
+    - cron: '0 12 * * 1'  # Every Monday at 12:00 UTC (19:00 WIB)
+  workflow_dispatch:
 
 jobs:
   send_email:
@@ -18,7 +18,8 @@ jobs:
         python-version: '3.11'
 
     - name: Install dependencies
-      run: pip install yagmail
+      run: |
+        pip install yagmail matplotlib
 
     - name: Run script
       env:
