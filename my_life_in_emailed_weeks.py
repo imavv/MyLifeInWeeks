@@ -63,7 +63,7 @@ def send_email_with_image(birthdate_str, output_image):
     lived_weeks = (today - birthdate).days // 7
 
     subject = "Your Life in Weeks – A Gentle Reminder"
-    body = f"Today I am living my {lived_weeks}th week. I've come pretty far."
+    body = f"Here's a visual representation of your lived life in weeks. \n\n You're living your {lived_weeks}th week - an occasion to celebrate, or a reminder to act upon?"
 
     generate_life_weeks_image(BIRTHDATE, LIFE_EXPECTANCY, output_image)
 
