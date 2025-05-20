@@ -10,6 +10,7 @@ EMAIL_RECEIVER = "amavirananda.2001@gmail.com"
 BIRTHDATE = "2001-07-13"  # YYYY-MM-DD
 LIFE_EXPECTANCY = 80
 OUTPUT_IMAGE = "lifeinweeks.png"
+TEMPLATE_PATH = "template.html"
 
 def generate_life_weeks_image(birthdate_str, life_expectancy, output_path):
     birthdate = datetime.strptime(birthdate_str, "%Y-%m-%d")
@@ -57,21 +58,30 @@ def generate_life_weeks_image(birthdate_str, life_expectancy, output_path):
     plt.close()
     print(f"✅ Saved image to {output_path}")
 
+def read_template():
+    with open(TEMPLATE_PATH, "r", encoding="utf-8") as f:
+        return f.read()
+
 def send_email_with_image(birthdate_str, output_image):
     birthdate = datetime.strptime(birthdate_str, "%Y-%m-%d")
     today = datetime.today()
     lived_weeks = (today - birthdate).days // 7
 
     subject = "Your Life in Weeks – A Gentle Reminder"
-    body = f"Here's a visual representation of your lived life in weeks. \n\n You're living your {lived_weeks}th week - an occasion to celebrate, or a reminder to act upon?"
+    # body = f"Here's a visual representation of your lived life in weeks. \n\n You're living your {lived_weeks}th week - an occasion to celebrate, or a reminder to act upon?"
 
-    generate_life_weeks_image(BIRTHDATE, LIFE_EXPECTANCY, output_image)
+    generate_life_weeks_image(BIRTHDATE, LIFE_EXPECTANCY, f".github/images/{output_image}")
+
+    # embed image in html
+    template = read_template()
+    full_html = template.replace("{{GRID}}", '<img src="https://raw.githubusercontent.com/yourusername/repo/main/images/life-in-weeks.png"'>)
 
     yag = yagmail.SMTP(EMAIL_SENDER, EMAIL_PASSWORD)
     yag.send(
         to=EMAIL_RECEIVER,
         subject=subject,
-        contents=[body, output_image]
+        # contents=[body, output_image]
+        contents=full_html
     )
     print("✅ Email sent with image.")
 
