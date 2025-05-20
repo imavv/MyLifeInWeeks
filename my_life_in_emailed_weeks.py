@@ -2,6 +2,7 @@ import yagmail
 import matplotlib.pyplot as plt
 from datetime import datetime
 import os
+import requests
 
 # CONFIGURATION
 EMAIL_SENDER = "amavirananda.2001@gmail.com"
@@ -11,6 +12,7 @@ BIRTHDATE = "2001-07-13"  # YYYY-MM-DD
 LIFE_EXPECTANCY = 80
 OUTPUT_IMAGE = "lifeinweeks.png"
 TEMPLATE_PATH = "template.html"
+client_id = "35eeec5e6625fe6" #imgur upload
 
 def generate_life_weeks_image(birthdate_str, life_expectancy, output_path):
     birthdate = datetime.strptime(birthdate_str, "%Y-%m-%d")
@@ -62,6 +64,16 @@ def read_template():
     with open(TEMPLATE_PATH, "r", encoding="utf-8") as f:
         return f.read()
 
+def upload_to_imgur(image_path, client_id):
+    headers = {"Authorization": f"Client-ID {client_id}"}
+    with open(image_path, "rb") as img:
+        data = {"image": img.read()}
+        response = requests.post("https://api.imgur.com/3/upload", headers=headers, files=data)
+    if response.status_code == 200:
+        return response.json()["data"]["link"]
+    else:
+        raise Exception(f"Upload failed: {response.status_code}, {response.text}")
+
 def send_email_with_image(birthdate_str, output_image):
     birthdate = datetime.strptime(birthdate_str, "%Y-%m-%d")
     today = datetime.today()
@@ -70,11 +82,24 @@ def send_email_with_image(birthdate_str, output_image):
     subject = "Your Life in Weeks – A Gentle Reminder"
     # body = f"Here's a visual representation of your lived life in weeks. \n\n You're living your {lived_weeks}th week - an occasion to celebrate, or a reminder to act upon?"
 
-    generate_life_weeks_image(BIRTHDATE, LIFE_EXPECTANCY, f".github/images/{output_image}")
+    # generate image and POST to imgur
+    generate_life_weeks_image(BIRTHDATE, LIFE_EXPECTANCY, output_image)
+    img_url = upload_to_imgur(output_image, client_id)
+    print(f"uploaded image to {img_url}")
 
     # embed image in html
     template = read_template()
-    full_html = template.replace("{{GRID}}", '<img src="https://raw.githubusercontent.com/yourusername/repo/main/images/life-in-weeks.png"'>)
+    html_string = f"""
+                    <div style="font-family: Arial, sans-serif; line-height: 1.6; max-width: 600px; margin: auto; text-align: center;">
+                        <p style="font-size: 18px; color: #333;">
+                            Here's a visual representation of your life in weeks.<br>
+                            You’re living your <strong>{lived_weeks}</strong><sup>th</sup> week —
+                            <em>an occasion to celebrate, or a reminder to act upon?</em>
+                        </p>
+                        <img src="{img_url}" alt="Life in Weeks Chart" style="max-width: 100%; height: auto; border-radius: 8px; box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1); margin-top: 20px;">
+                    </div>
+                    """
+    full_html = template.replace("{{GRID}}", html_string)
 
     yag = yagmail.SMTP(EMAIL_SENDER, EMAIL_PASSWORD)
     yag.send(
